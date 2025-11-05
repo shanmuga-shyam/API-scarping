@@ -20,6 +20,19 @@ def get_job_info():
     res = requests.get(url = Base_url,headers=Request_header )
     return res.json()
 
+def output_to_excel(data):
+    wb = Workbook()
+    job_sheet = wb.add_sheet("Jobs")
+    header = list(data[0].keys())
+    for i in range(len(header)):
+        job_sheet.write(0,i,header[i]) #row, column, value
+    for i in range(len(data)):
+        job = data[i]
+        values = list(job.values())
+        for j in range(len(values)):
+            job_sheet.write(i+1,j,values[j])
+    wb.save("new_jobs.csv")
+
 if __name__ == "__main__" :
-    json = get_job_info()[1]
-    print(json)
+    json = get_job_info()[1:]
+    output_to_excel(json)
