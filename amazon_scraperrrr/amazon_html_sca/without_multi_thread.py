@@ -13,8 +13,6 @@ Request_header = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
-no_threads = 10
-
 def file_creator(filename):
     if not filename.endswith(".csv"):
         filename += ".csv"
@@ -135,18 +133,17 @@ def get_product_information(soup):
             specs[key] = val
 
     return specs
-def extract_product_info(url, output):
+def extract_product_info(url):
     print(f"scraped_url: {url}")
     html = get_page_html(url=url)
-    # if not html:
-    #     return {"price": None}
+    if not html:
+        return {"price": None}
     soup = bs4.BeautifulSoup(html, "lxml")
     price = get_product_price(soup)
     title = get_product_title(soup)
     rating = get_product_rating(soup)
     information = get_product_information(soup)
-    x = {"price": price, "title": title, "rating": rating, "information": information}
-    output.append(x)
+    return {"price": price, "title": title, "rating": rating, "information": information}
     
 if __name__ == "__main__":
     # file_creator("amazon_products_urs.csv")
@@ -155,17 +152,12 @@ if __name__ == "__main__":
     # to latin-1 as needed.
     # Open file with utf-8 and replace errors to avoid decode crashes from mixed encodings.
     product_data = []
-    urls = []
     with open("amazon_products_urs.csv", newline="", encoding='utf-8', errors='replace') as csvfile:
-        urls = list(csv.reader(csvfile, delimiter=","))
-    with concurrent.futures.ThreadPoolExecutor(max_workers=no_threads) as executor:
-        for wkn in tqdm(range(len(urls))):
-            executor.submit(extract_product_info, urls[wkn][0], product_data)
-        # readers = csv.reader(csvfile, delimiter=",")
-        # for row in readers:
-        #     url = row[0]
-        #     print(url)
-        #     product_data.append(extract_product_info(url))
+        readers = csv.reader(csvfile, delimiter=",")
+        for row in readers:
+            url = row[0]
+            print(url)
+            product_data.append(extract_product_info(url))
     output_filename = f'output-{datetime.now().strftime("%m-%d-%y")}.csv'
     with open(output_filename, "w") as outputfile:
         writer = csv.writer(outputfile)
